@@ -117,6 +117,7 @@ export default {
     'nuxt-clipboard2',
     '@nuxtjs/style-resources',
     '@nuxtjs/google-adsense',
+    '@nuxtjs/sentry',
   ],
   robots: {
     Sitemap: 'https://modrinth.com/sitemap.xml',
@@ -172,6 +173,12 @@ export default {
         removeComments: true, // 👈 add this line
       },
     },
+    extend(config, { isClient }) {
+      // Extend only webpack config for client-bundle
+      if (isClient) {
+        config.devtool = 'hidden-source-map'
+      }
+    }
   },
   loading: {
     color: 'green',
