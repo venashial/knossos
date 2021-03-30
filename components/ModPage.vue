@@ -83,13 +83,6 @@
             >
               Versions
             </nuxt-link>
-            <nuxt-link
-              v-if="currentMember"
-              :to="'/mod/' + mod.id + '/settings'"
-              class="tab"
-            >
-              Settings
-            </nuxt-link>
             <a
               v-if="mod.wiki_url"
               :href="mod.wiki_url"
@@ -127,6 +120,14 @@
               Discord
             </a>
             <div class="filler" />
+            <nuxt-link
+              v-if="currentMember"
+              :to="'/mod/' + mod.id + '/settings'"
+              class="tab"
+            >
+              <SettingsIcon />
+              Settings
+            </nuxt-link>
           </div>
         </div>
         <div class="mod-content">
@@ -359,6 +360,7 @@ import FileTextIcon from '~/assets/images/utils/file-text.svg?inline'
 import CodeIcon from '~/assets/images/sidebar/mod.svg?inline'
 import ReportIcon from '~/assets/images/utils/report.svg?inline'
 import FollowIcon from '~/assets/images/utils/heart.svg?inline'
+import SettingsIcon from '~/assets/images/sidebar/settings.svg?inline'
 
 import ExternalIcon from '~/assets/images/utils/external.svg?inline'
 
@@ -385,6 +387,7 @@ export default {
     CodeIcon,
     ReportIcon,
     FollowIcon,
+    SettingsIcon,
   },
   props: {
     mod: {
@@ -513,11 +516,14 @@ export default {
   }
   .buttons {
     @extend %column;
-    margin: var(--spacing-card-md) var(--spacing-card-md) var(--spacing-card-md)
-      auto;
+    margin: var(--spacing-card-md) calc(var(--spacing-card-md) + 0.5rem)
+      var(--spacing-card-md) auto;
+    display: flex;
+    justify-content: space-around;
+    flex-direction: column;
 
     button {
-      margin: 0.2rem 0 0 0;
+      margin: 0 0 0 0;
     }
   }
 }
