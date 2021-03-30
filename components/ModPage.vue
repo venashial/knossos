@@ -516,7 +516,7 @@ export default {
   }
   .buttons {
     @extend %column;
-    margin: var(--spacing-card-md) calc(var(--spacing-card-md) + 0.5rem)
+    margin: var(--spacing-card-md) calc(var(--spacing-card-md) + 0.75rem)
       var(--spacing-card-md) auto;
     display: flex;
     justify-content: space-around;
