@@ -1,7 +1,7 @@
 <template>
   <div
-    class="checkbox-outer"
-    :class="{ disabled }"
+    class="checkbox-outer button-within"
+    :class="{ disabled, checked: modelValue }"
     role="presentation"
     @click="toggle"
   >
@@ -9,25 +9,29 @@
       class="checkbox"
       role="checkbox"
       :disabled="disabled"
-      :class="{ checked: value }"
-      :aria-label="description"
-      :aria-checked="value"
+      :class="{ checked: modelValue, collapsing: collapsingToggleStyle }"
+      :aria-label="description ?? label"
+      :aria-checked="modelValue"
     >
-      <CheckIcon v-if="value" aria-hidden="true" />
+      <CheckIcon v-if="modelValue && !collapsingToggleStyle" aria-hidden="true" />
+      <DropdownIcon v-else-if="collapsingToggleStyle" aria-hidden="true" />
     </button>
     <!-- aria-hidden is set so screenreaders only use the <button>'s aria-label -->
-    <p v-if="label" aria-hidden="true">{{ label }}</p>
+    <p v-if="label" aria-hidden="true">
+      {{ label }}
+    </p>
     <slot v-else />
   </div>
 </template>
 
 <script>
-import CheckIcon from '~/assets/images/utils/check.svg?inline'
+import CheckIcon from '~/assets/images/utils/check.svg?component'
+import DropdownIcon from '~/assets/images/utils/dropdown.svg?component'
 
 export default {
-  name: 'Checkbox',
   components: {
     CheckIcon,
+    DropdownIcon,
   },
   props: {
     label: {
@@ -40,18 +44,23 @@ export default {
     },
     description: {
       type: String,
-      default: '',
+      default: null,
     },
-    value: Boolean,
+    modelValue: Boolean,
     clickEvent: {
       type: Function,
       default: () => {},
     },
+    collapsingToggleStyle: {
+      type: Boolean,
+      default: false,
+    },
   },
+  emits: ['update:modelValue'],
   methods: {
     toggle() {
       if (!this.disabled) {
-        this.$emit('input', !this.value)
+        this.$emit('update:modelValue', !this.modelValue)
       }
     },
   },
@@ -64,49 +73,20 @@ export default {
   align-items: center;
   cursor: pointer;
 
-  &.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-
-    button {
-      cursor: not-allowed;
-
-      &:active,
-      &:hover,
-      &:focus {
-        background-color: var(--color-button-bg);
-      }
-    }
-  }
-
   p {
     user-select: none;
-    padding: 0.2rem 0rem;
+    padding: 0.2rem 0;
     margin: 0;
   }
 
-  &:focus-visible,
-  &:hover {
-    color: var(--color-heading);
-
-    button {
-      background-color: var(--color-button-bg-hover);
-
-      &.checked {
-        background-color: var(--color-brand-hover);
-      }
-    }
+  &.disabled {
+    cursor: not-allowed;
   }
-  &:active {
-    color: var(--color-text-dark);
 
-    button {
-      background-color: var(--color-button-bg-active);
-
-      &.checked {
-        background-color: var(--color-brand-active);
-      }
-    }
+  &.checked {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    border-radius: 0.25rem;
   }
 }
 
@@ -116,22 +96,50 @@ export default {
   justify-content: center;
   cursor: pointer;
 
-  width: 1rem;
-  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
 
   padding: 0;
   margin: 0 0.5rem 0 0;
+
+  color: var(--color-button-text);
+  background-color: var(--color-button-bg);
+  border-radius: var(--size-rounded-control);
+  box-shadow: var(--shadow-inset-sm), 0 0 0 0 transparent;
 
   &.checked {
     background-color: var(--color-brand);
   }
 
   svg {
-    color: var(--color-text-inverted);
+    color: var(--color-brand-inverted);
     stroke-width: 0.2rem;
     height: 0.8rem;
     width: 0.8rem;
     flex-shrink: 0;
+  }
+
+  &.collapsing {
+    background-color: transparent !important;
+    box-shadow: none;
+
+    svg {
+      color: inherit;
+      height: 1rem;
+      width: 1rem;
+      transition: transform 0.25s ease-in-out;
+    }
+
+    &.checked {
+      svg {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  &:disabled {
+    box-shadow: none;
+    cursor: not-allowed;
   }
 }
 </style>

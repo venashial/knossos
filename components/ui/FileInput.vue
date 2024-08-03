@@ -1,20 +1,27 @@
 <template>
-  <label class="button" @drop.prevent="addFile" @dragover.prevent>
-    <span>
-      {{ text }}
-    </span>
+  <label
+    :class="{ 'long-style': longStyle }"
+    :disabled="disabled"
+    @drop.prevent="handleDrop"
+    @dragover.prevent
+  >
+    <slot />
+    {{ prompt }}
     <input
       type="file"
       :multiple="multiple"
       :accept="accept"
-      @change="onChange"
+      :disabled="disabled"
+      @change="handleChange"
     />
   </label>
 </template>
 
 <script>
+import { fileIsValid } from '~/helpers/fileUtils.js'
+
 export default {
-  name: 'FileInput',
+  components: {},
   props: {
     prompt: {
       type: String,
@@ -28,40 +35,54 @@ export default {
       type: String,
       default: null,
     },
+    /**
+     * The max file size in bytes
+     */
+    maxSize: {
+      type: Number,
+      default: null,
+    },
+    showIcon: {
+      type: Boolean,
+      default: true,
+    },
+    shouldAlwaysReset: {
+      type: Boolean,
+      default: false,
+    },
+    longStyle: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
+  emits: ['change'],
   data() {
     return {
-      text: this.prompt,
       files: [],
     }
   },
   methods: {
-    onChange(files, shouldNotReset) {
-      if (!shouldNotReset) this.files = files.target.files
-
-      const length = this.files.length
-      if (length === 0) {
-        this.text = this.prompt
-      } else if (length === 1) {
-        this.text = '1 file selected'
-      } else if (length > 1) {
-        this.text = length + ' files selected'
+    addFiles(files, shouldNotReset) {
+      if (!shouldNotReset || this.shouldAlwaysReset) {
+        this.files = files
       }
-      this.$emit('change', this.files)
+
+      const validationOptions = { maxSize: this.maxSize, alertOnInvalid: true }
+      this.files = [...this.files].filter((file) => fileIsValid(file, validationOptions))
+
+      if (this.files.length > 0) {
+        this.$emit('change', this.files)
+      }
     },
-    addFile(e) {
-      const droppedFiles = e.dataTransfer.files
-
-      if (!this.multiple) this.files = []
-
-      if (!droppedFiles) return
-      ;[...droppedFiles].forEach((f) => {
-        this.files.push(f)
-      })
-
-      if (!this.multiple && this.files.length > 0) this.files = [this.files[0]]
-
-      if (this.files.length > 0) this.onChange(null, true)
+    handleDrop(e) {
+      this.addFiles(e.dataTransfer.files)
+    },
+    handleChange(e) {
+      this.addFiles(e.target.files)
     },
   },
 }
@@ -69,20 +90,28 @@ export default {
 
 <style lang="scss" scoped>
 label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: var(--spacing-card-sm) var(--spacing-card-md);
-}
+  flex-direction: unset;
+  max-height: unset;
 
-span {
-  border: 2px dashed var(--color-divider-dark);
-  border-radius: var(--size-rounded-control);
-  padding: var(--spacing-card-md) var(--spacing-card-lg);
-}
+  svg {
+    height: 1rem;
+  }
 
-input {
-  display: none;
+  input {
+    display: none;
+  }
+
+  &.long-style {
+    display: flex;
+    padding: 1.5rem 2rem;
+    justify-content: center;
+    align-items: center;
+    grid-gap: 0.5rem;
+    background-color: var(--color-button-bg);
+    border-radius: var(--size-rounded-sm);
+    border: dashed 0.3rem var(--color-text);
+    cursor: pointer;
+    color: var(--color-text-dark);
+  }
 }
 </style>
